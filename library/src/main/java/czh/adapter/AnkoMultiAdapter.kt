@@ -13,32 +13,28 @@ abstract class AnkoMultiAdapter<E : AnkoMultiAdapter.MultiItem> : AnkoAdapter<E>
     constructor(mData: MutableList<E>?) : super(mData)
 
     override fun getItemViewType(position: Int): Int {
-        try {
 //            Log.e("position", position.toString())
-            if (getEmptyViewCount() == 1) {
-                val header = mHeadAndEmptyEnable && getHeaderLayoutCount() != 0
-                return when (position) {
-                    0 -> if (header) {
-                        HEADER_VIEW
-                    } else {
-                        EMPTY_VIEW
-                    }
-                    1 -> if (header) {
-                        EMPTY_VIEW
-                    } else {
-                        FOOTER_VIEW
-                    }
-                    2 -> FOOTER_VIEW
-                    else -> EMPTY_VIEW
+        if (getEmptyViewCount() == 1) {
+            val header = mHeadAndEmptyEnable && getHeaderLayoutCount() != 0
+            return when (position) {
+                0 -> if (header) {
+                    HEADER_VIEW
+                } else {
+                    EMPTY_VIEW
                 }
+                1 -> if (header) {
+                    EMPTY_VIEW
+                } else {
+                    FOOTER_VIEW
+                }
+                2 -> FOOTER_VIEW
+                else -> EMPTY_VIEW
             }
-            return when {
-                position < getHeaderLayoutCount() -> HEADER_VIEW
-                position - getHeaderLayoutCount() < mData.size -> (mData[position - getHeaderLayoutCount()] as MultiItem).itemType
-                else -> FOOTER_VIEW
-            }
-        } catch (e: Exception) {
-            return EMPTY_VIEW
+        }
+        return when {
+            position < getHeaderLayoutCount() -> HEADER_VIEW
+            position - getHeaderLayoutCount() < mData.size -> (mData[position - getHeaderLayoutCount()] as MultiItem).itemType
+            else -> FOOTER_VIEW
         }
 
     }
