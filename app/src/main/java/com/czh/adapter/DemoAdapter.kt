@@ -1,7 +1,6 @@
 package com.czh.adapter
 
 import android.content.Context
-import czh.adapter.AnkoAdapter
 import czh.adapter.holer.BaseViewHolder
 import org.jetbrains.anko.AnkoComponent
 

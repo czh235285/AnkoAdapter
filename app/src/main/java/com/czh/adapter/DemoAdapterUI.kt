@@ -15,7 +15,7 @@ class DemoAdapterUI : AnkoComponent<Context> {
     @SuppressLint("ResourceType")
     override fun createView(ui: AnkoContext<Context>) = with(ui) {
         verticalLayout {
-            lparams(matchParent, matchParent)
+            lparams(matchParent, wrapContent)
             tv = textView("测试") {
                 id=1
                 setOnClickListener {

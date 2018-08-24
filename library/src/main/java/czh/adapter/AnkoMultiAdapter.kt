@@ -2,8 +2,6 @@ package czh.adapter
 
 import android.content.Context
 import android.util.SparseArray
-import android.view.ViewGroup
-import czh.adapter.holer.BaseViewHolder
 import org.jetbrains.anko.AnkoComponent
 
 
@@ -13,7 +11,6 @@ abstract class AnkoMultiAdapter<E : AnkoMultiAdapter.MultiItem> : AnkoAdapter<E>
     constructor(mData: MutableList<E>?) : super(mData)
 
     override fun getItemViewType(position: Int): Int {
-//            Log.e("position", position.toString())
         if (getEmptyViewCount() == 1) {
             val header = mHeadAndEmptyEnable && getHeaderLayoutCount() != 0
             return when (position) {
@@ -40,28 +37,38 @@ abstract class AnkoMultiAdapter<E : AnkoMultiAdapter.MultiItem> : AnkoAdapter<E>
     }
 
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {
-        return if (getAnkoLayouts(viewType) != null)
-            baseViewHolder(getAnkoLayouts(viewType), parent.context)
-        else super.onCreateViewHolder(parent, viewType)
-    }
+//    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AnkoViewHolder {
+//        this.mContext = parent.context
+//        return when (viewType) {
+//            EMPTY_VIEW -> AnkoViewHolder(FrameMatchUI(), parent.context)
+//            HEADER_VIEW, FOOTER_VIEW -> AnkoViewHolder(FrameUI(), parent.context)
+//            else -> AnkoViewHolder(ankoLayout(viewType), parent.context).apply {
+//                itemView?.setOnClickListener {
+//                    onItemClickListener?.onItemClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
+//                }
+//
+//                itemView?.setOnLongClickListener {
+//                    onItemLongClickListener?.onItemLongClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
+//                    return@setOnLongClickListener true
+//                }
+//            }
+//        }
+//    }
+//
+//    override fun onBindViewHolder(holder: AnkoViewHolder, position: Int) {
+//        when (holder.itemViewType) {
+//            HEADER_VIEW, FOOTER_VIEW, EMPTY_VIEW -> {
+//                super.onBindViewHolder(holder, position)
+//            }
+//            else -> {
+//                ankoLayout((mData[position - getHeaderLayoutCount()] as MultiItem).itemType).let {
+//                    convert(holder, position - getHeaderLayoutCount(), getItem(position - getHeaderLayoutCount()))
+//                }
+//
+//            }
+//        }
+//    }
 
-    override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
-        when (holder.itemViewType) {
-            HEADER_VIEW, FOOTER_VIEW, EMPTY_VIEW -> {
-            }
-            else -> {
-                getAnkoLayouts((mData[position - getHeaderLayoutCount()] as MultiItem).itemType)?.let {
-                    convert(holder, it, getItem(position - getHeaderLayoutCount()))
-                }
-
-            }
-        }
-    }
-
-    private fun getAnkoLayouts(viewType: Int): AnkoComponent<Context>? {
-        return mLayouts.get(viewType, null)
-    }
 
     protected fun addType(type: Int, layoutResId: AnkoComponent<Context>) {
         mLayouts.put(type, layoutResId)
