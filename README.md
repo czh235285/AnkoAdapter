@@ -1,7 +1,7 @@
 ## AnkoAdapter
 [![](https://jitpack.io/v/czh235285/AnkoAdapter.svg)](https://jitpack.io/#czh235285/AnkoAdapter)
 
-###支持anko DSL布局的adapter
+支持anko DSL布局的adapter
 
 * 支持直接传JsonArray
 * 支持类似商城的多type布局
@@ -20,5 +20,6 @@ dependencies {
 }
 ```
 
-##具体用法直接看[FastKotlin](https://github.com/czh235285/FastKotlin)
-###里面有kotlin的各种demo，完全dsl布局，layout文件夹已删。。。
+具体用法直接看[FastKotlin](https://github.com/czh235285/FastKotlin)
+
+里面有kotlin的各种demo，完全dsl布局，layout文件夹已删。。。
