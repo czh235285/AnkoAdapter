@@ -359,7 +359,7 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
         }
     }
 
-    protected abstract fun convert(holder: BaseViewHolder, item: JSONObject?)
+    protected abstract fun convert(holder: BaseViewHolder, item: JSONObject?): Any
 
     companion object {
         const val EMPTY_VIEW = 0x00000111

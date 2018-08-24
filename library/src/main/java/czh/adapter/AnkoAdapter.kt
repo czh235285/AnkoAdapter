@@ -380,7 +380,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         }
     }
 
-    protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: E?)
+    protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: E?) : Any
 
     companion object {
         const val EMPTY_VIEW = 0x00000111

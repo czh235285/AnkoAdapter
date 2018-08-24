@@ -36,40 +36,6 @@ abstract class AnkoMultiAdapter<E : AnkoMultiAdapter.MultiItem> : AnkoAdapter<E>
 
     }
 
-
-//    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AnkoViewHolder {
-//        this.mContext = parent.context
-//        return when (viewType) {
-//            EMPTY_VIEW -> AnkoViewHolder(FrameMatchUI(), parent.context)
-//            HEADER_VIEW, FOOTER_VIEW -> AnkoViewHolder(FrameUI(), parent.context)
-//            else -> AnkoViewHolder(ankoLayout(viewType), parent.context).apply {
-//                itemView?.setOnClickListener {
-//                    onItemClickListener?.onItemClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
-//                }
-//
-//                itemView?.setOnLongClickListener {
-//                    onItemLongClickListener?.onItemLongClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
-//                    return@setOnLongClickListener true
-//                }
-//            }
-//        }
-//    }
-//
-//    override fun onBindViewHolder(holder: AnkoViewHolder, position: Int) {
-//        when (holder.itemViewType) {
-//            HEADER_VIEW, FOOTER_VIEW, EMPTY_VIEW -> {
-//                super.onBindViewHolder(holder, position)
-//            }
-//            else -> {
-//                ankoLayout((mData[position - getHeaderLayoutCount()] as MultiItem).itemType).let {
-//                    convert(holder, position - getHeaderLayoutCount(), getItem(position - getHeaderLayoutCount()))
-//                }
-//
-//            }
-//        }
-//    }
-
-
     protected fun addType(type: Int, layoutResId: AnkoComponent<Context>) {
         mLayouts.put(type, layoutResId)
     }

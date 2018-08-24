@@ -384,7 +384,7 @@ abstract class AnkoJsonAdapter(data: JSONArray?) : RecyclerView.Adapter<AnkoView
         }
     }
 
-    protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: JSONObject?)
+    protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: JSONObject?): Any
 
     companion object {
         const val EMPTY_VIEW = 0x00000111
