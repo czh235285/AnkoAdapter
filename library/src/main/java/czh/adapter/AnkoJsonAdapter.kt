@@ -3,37 +3,28 @@ package czh.adapter
 import android.content.Context
 import android.support.annotation.IntRange
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import czh.adapter.holer.BaseViewHolder
+import czh.adapter.holer.AnkoViewHolder
+import czh.adapter.layout.FrameMatchUI
+import czh.adapter.layout.FrameUI
 import org.jetbrains.anko.AnkoComponent
-import org.jetbrains.anko.AnkoContext
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 
-/**
- * https://github.com/czh235285/JsonAdapter
- */
-abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?) : RecyclerView.Adapter<BaseViewHolder>() {
+abstract class AnkoJsonAdapter(data: JSONArray?) : RecyclerView.Adapter<AnkoViewHolder>() {
     var mData: JSONArray
 
     init {
-        this.mData = data ?: JSONArray()
+        mData = data ?: JSONArray()
     }
 
-
     protected lateinit var mContext: Context
-    private lateinit var mLayoutInflater: LayoutInflater
 
-    private var onItemClickListener: OnItemClickListener? = null
-    private var onItemLongClickListener: OnItemLongClickListener? = null
-
+    protected var onItemClickListener: OnItemClickListener? = null
+    protected var onItemLongClickListener: OnItemLongClickListener? = null
     //header footer
     private var mHeaderLayout: LinearLayout? = null
     private var mFooterLayout: LinearLayout? = null
@@ -42,23 +33,22 @@ abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?
     private var mEmptyLayout: FrameLayout? = null
     private var mIsUseEmpty = true
 
-    var mHeadAndEmptyEnable: Boolean = false
-    private var mFootAndEmptyEnable: Boolean = false
-
+    protected var mHeadAndEmptyEnable: Boolean = false
+    var mFootAndEmptyEnable: Boolean = false
 
     fun setHeaderFooterEmpty(isHeadAndEmpty: Boolean, isFootAndEmpty: Boolean) {
         mHeadAndEmptyEnable = isHeadAndEmpty
         mFootAndEmptyEnable = isFootAndEmpty
     }
 
-    fun getEmptyViewCount(): Int = when {
-        mEmptyLayout == null || mEmptyLayout!!.childCount == 0 || !mIsUseEmpty || mData.length() != 0 -> 0
+    protected fun getEmptyViewCount(): Int = when {
+        mEmptyLayout == null || mEmptyLayout!!.childCount == 0 || !mIsUseEmpty || mData.length()==0 -> 0
         else -> 1
     }
 
-    fun getHeaderLayoutCount(): Int = if (mHeaderLayout == null || mHeaderLayout?.childCount == 0) 0 else 1
+    protected fun getHeaderLayoutCount(): Int = if (mHeaderLayout == null || mHeaderLayout?.childCount == 0) 0 else 1
 
-    fun getFooterLayoutCount(): Int = if (mFooterLayout == null || mFooterLayout?.childCount == 0) 0 else 1
+    protected fun getFooterLayoutCount(): Int = if (mFooterLayout == null || mFooterLayout?.childCount == 0) 0 else 1
 
 
     private fun getHeaderViewPosition(): Int {
@@ -87,48 +77,6 @@ abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?
         return -1
     }
 
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {
-        this.mContext = parent.context
-        this.mLayoutInflater = LayoutInflater.from(mContext)
-        return when (viewType) {
-            EMPTY_VIEW -> BaseViewHolder(mEmptyLayout!!)
-            HEADER_VIEW -> BaseViewHolder(mHeaderLayout!!)
-            FOOTER_VIEW -> BaseViewHolder(mFooterLayout!!)
-            else -> {
-                baseViewHolder(ui, mContext)
-            }
-        }
-
-    }
-
-    fun baseViewHolder(ui: AnkoComponent<Context>?, context: Context): BaseViewHolder {
-        return BaseViewHolder(ui!!.createView(AnkoContext.create(context))).apply {
-            itemView?.setOnClickListener {
-                onItemClickListener?.onItemClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
-            }
-
-            itemView?.setOnLongClickListener {
-                onItemLongClickListener?.onItemLongClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
-                return@setOnLongClickListener true
-            }
-        }
-    }
-
-    override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
-        when (holder.itemViewType) {
-            HEADER_VIEW, FOOTER_VIEW, EMPTY_VIEW -> {
-            }
-            else -> convert(holder, ui!!, getItem(position - getHeaderLayoutCount()))
-        }
-    }
-
-    fun getItem(@IntRange(from = 0) position: Int): JSONObject? {
-        return if (position < mData.length() && position >= 0)
-            mData.optJSONObject(position)
-        else
-            null
-    }
 
     override fun getItemCount(): Int {
         var count: Int
@@ -210,10 +158,10 @@ abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?
             mHeaderLayout = LinearLayout(header.context)
             if (orientation == LinearLayout.VERTICAL) {
                 mHeaderLayout?.orientation = LinearLayout.VERTICAL
-                mHeaderLayout?.layoutParams = RecyclerView.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                mHeaderLayout?.layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             } else {
                 mHeaderLayout?.orientation = LinearLayout.HORIZONTAL
-                mHeaderLayout?.layoutParams = RecyclerView.LayoutParams(WRAP_CONTENT, MATCH_PARENT)
+                mHeaderLayout?.layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT)
             }
         }
         val index = mHeaderLayout!!.childCount
@@ -227,15 +175,18 @@ abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?
         return index
     }
 
-
+    /**
+     * @param footer
+     * @param orientation
+     */
     fun addFooterView(footer: View, orientation: Int = LinearLayout.VERTICAL): Int {
         if (mFooterLayout == null) {
             mFooterLayout = LinearLayout(footer.context)
             mFooterLayout?.orientation = orientation
             if (orientation == LinearLayout.VERTICAL) {
-                mFooterLayout?.layoutParams = RecyclerView.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                mFooterLayout?.layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             } else {
-                mFooterLayout?.layoutParams = RecyclerView.LayoutParams(WRAP_CONTENT, MATCH_PARENT)
+                mFooterLayout?.layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT)
             }
         }
         val index = mFooterLayout!!.childCount
@@ -259,6 +210,9 @@ abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?
 
         mHeaderLayout?.removeView(header)
         if (mHeaderLayout?.childCount == 0) {
+            mHeaderLayout?.parent?.let {
+                (it as FrameLayout).removeAllViews()
+            }
             val position = getHeaderViewPosition()
             if (position != -1) {
                 notifyItemRemoved(position)
@@ -276,6 +230,9 @@ abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?
 
         mFooterLayout?.removeView(footer)
         if (mFooterLayout?.childCount == 0) {
+            mFooterLayout?.parent?.let {
+                (it as FrameLayout).removeAllViews()
+            }
             val position = getFooterViewPosition()
             if (position != -1) {
                 notifyItemRemoved(position)
@@ -289,7 +246,9 @@ abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?
      */
     fun removeAllHeaderView() {
         if (getHeaderLayoutCount() == 0) return
-
+        mHeaderLayout?.parent?.let {
+            (it as FrameLayout).removeAllViews()
+        }
         mHeaderLayout?.removeAllViews()
         val position = getHeaderViewPosition()
         if (position != -1) {
@@ -302,12 +261,63 @@ abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?
      */
     fun removeAllFooterView() {
         if (getFooterLayoutCount() == 0) return
-
+        mFooterLayout?.parent?.let {
+            (it as FrameLayout).removeAllViews()
+        }
         mFooterLayout?.removeAllViews()
         val position = getFooterViewPosition()
         if (position != -1) {
             notifyItemRemoved(position)
         }
+    }
+
+
+    abstract fun ankoLayout(viewType: Int): AnkoComponent<Context>
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AnkoViewHolder {
+        this.mContext = parent.context
+        return when (viewType) {
+            EMPTY_VIEW -> AnkoViewHolder(FrameMatchUI(), parent.context)
+            HEADER_VIEW, FOOTER_VIEW -> AnkoViewHolder(FrameUI(), parent.context)
+            else -> AnkoViewHolder(ankoLayout(viewType), parent.context).apply {
+                itemView?.setOnClickListener {
+                    onItemClickListener?.onItemClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
+                }
+
+                itemView?.setOnLongClickListener {
+                    onItemLongClickListener?.onItemLongClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
+                    return@setOnLongClickListener true
+                }
+            }
+        }
+    }
+
+
+    override fun onBindViewHolder(holder: AnkoViewHolder, position: Int) {
+        when (getItemViewType(position)) {
+            EMPTY_VIEW -> (holder.ui as FrameMatchUI).empty.apply {
+                if (childCount == 0) {
+                    addView(mEmptyLayout)
+                }
+            }
+            HEADER_VIEW -> (holder.ui as FrameUI).empty.apply {
+                if (childCount == 0) {
+                    addView(mHeaderLayout)
+                }
+            }
+            FOOTER_VIEW -> (holder.ui as FrameUI).empty.apply {
+                if (childCount == 0) {
+                    addView(mFooterLayout)
+                }
+            }
+            else -> convert(holder, position - getHeaderLayoutCount(), getItem(position - getHeaderLayoutCount()))
+        }
+    }
+
+    protected fun getItem(@IntRange(from = 0) position: Int): JSONObject? {
+        return if (position < mData.length())
+            mData.optJSONObject(position)
+        else
+            null
     }
 
 
@@ -326,13 +336,21 @@ abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?
     /**
      * 加载更多
      */
-    @Throws(JSONException::class)
     fun addData(data: JSONArray) {
         for (i in 0 until data.length()) {
             mData.put(mData.length(), data.optJSONObject(i))
         }
         notifyDataSetChanged()
     }
+
+    /**
+     * 加载更多
+     */
+    fun addData(data: JSONObject) {
+        mData.put(mData.length(), data)
+        notifyDataSetChanged()
+    }
+
 
     /**
      * item点击事件监听
@@ -366,8 +384,7 @@ abstract class AnkoJsonAdapter(var ui: AnkoComponent<Context>?, data: JSONArray?
         }
     }
 
-
-    protected abstract fun convert(holder: BaseViewHolder, ui: AnkoComponent<Context>, item: JSONObject?)
+    protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: JSONObject?)
 
     companion object {
         const val EMPTY_VIEW = 0x00000111

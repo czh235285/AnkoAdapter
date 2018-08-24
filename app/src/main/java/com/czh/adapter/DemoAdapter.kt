@@ -1,13 +1,17 @@
 package com.czh.adapter
 
 import android.content.Context
-import czh.adapter.holer.BaseViewHolder
+import czh.adapter.AnkoAdapter
+import czh.adapter.holer.AnkoViewHolder
 import org.jetbrains.anko.AnkoComponent
 
-class DemoAdapter(val uir: DemoAdapterUI, mData: List<String>?) : AnkoAdapter<String>(uir, mData) {
-    override fun convert(holder: BaseViewHolder, ui: AnkoComponent<Context>, item: String?)= with(uir) {
+class DemoAdapter(mData: List<String>?) : AnkoAdapter<String>(mData) {
+    override fun ankoLayout(viewType: Int): AnkoComponent<Context> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        tv.text = item
+    }
+
+    override fun convert(holder: AnkoViewHolder, position: Int, item: String?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
 }
