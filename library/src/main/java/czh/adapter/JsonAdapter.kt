@@ -3,6 +3,7 @@ package czh.adapter
 import android.content.Context
 import android.support.annotation.IntRange
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -114,6 +115,22 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
             HEADER_VIEW, FOOTER_VIEW, EMPTY_VIEW -> {
             }
             else -> convert(holder, getItem(position - getHeaderLayoutCount()))
+        }
+    }
+
+    override fun onViewAttachedToWindow(holder: BaseViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        val type = holder.itemViewType
+        if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW ) {
+            setFullSpan(holder)
+        }
+    }
+
+    protected fun setFullSpan(holder: BaseViewHolder) {
+        if (holder.itemView.layoutParams is StaggeredGridLayoutManager.LayoutParams) {
+            val params = holder
+                    .itemView.layoutParams as StaggeredGridLayoutManager.LayoutParams
+            params.isFullSpan = true
         }
     }
 

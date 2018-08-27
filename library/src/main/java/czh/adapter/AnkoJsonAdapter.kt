@@ -3,6 +3,7 @@ package czh.adapter
 import android.content.Context
 import android.support.annotation.IntRange
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -312,7 +313,21 @@ abstract class AnkoJsonAdapter(data: JSONArray?) : RecyclerView.Adapter<AnkoView
             else -> convert(holder, position - getHeaderLayoutCount(), getItem(position - getHeaderLayoutCount()))
         }
     }
+    override fun onViewAttachedToWindow(holder: AnkoViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        val type = holder.itemViewType
+        if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW) {
+            setFullSpan(holder)
+        }
+    }
 
+    protected fun setFullSpan(holder: AnkoViewHolder) {
+        if (holder.itemView.layoutParams is StaggeredGridLayoutManager.LayoutParams) {
+            val params = holder
+                    .itemView.layoutParams as StaggeredGridLayoutManager.LayoutParams
+            params.isFullSpan = true
+        }
+    }
     protected fun getItem(@IntRange(from = 0) position: Int): JSONObject? {
         return if (position < mData.length())
             mData.optJSONObject(position)
