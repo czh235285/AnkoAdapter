@@ -333,15 +333,32 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
     }
 
 
+
     /**
      * 加载更多
      */
-    @Throws(JSONException::class)
     fun addData(data: JSONArray) {
         for (i in 0 until data.length()) {
             mData.put(mData.length(), data.optJSONObject(i))
         }
-        notifyDataSetChanged()
+        notifyItemRangeInserted(mData.length() - data.length() + getHeaderLayoutCount(), data.length())
+        compatibilityDataSizeChanged(data.length())
+    }
+
+    /**
+     * 加载更多
+     */
+    fun addData(data: JSONObject) {
+        mData.put(mData.length(), data)
+        notifyItemInserted(mData.length() + getHeaderLayoutCount())
+        compatibilityDataSizeChanged(1)
+    }
+
+    private fun compatibilityDataSizeChanged(size: Int) {
+        val dataSize = mData.length()
+        if (dataSize == size) {
+            notifyDataSetChanged()
+        }
     }
 
     /**

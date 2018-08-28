@@ -355,7 +355,8 @@ abstract class AnkoJsonAdapter(data: JSONArray?) : RecyclerView.Adapter<AnkoView
         for (i in 0 until data.length()) {
             mData.put(mData.length(), data.optJSONObject(i))
         }
-        notifyDataSetChanged()
+        notifyItemRangeInserted(mData.length() - data.length() + getHeaderLayoutCount(), data.length())
+        compatibilityDataSizeChanged(data.length())
     }
 
     /**
@@ -363,9 +364,16 @@ abstract class AnkoJsonAdapter(data: JSONArray?) : RecyclerView.Adapter<AnkoView
      */
     fun addData(data: JSONObject) {
         mData.put(mData.length(), data)
-        notifyDataSetChanged()
+        notifyItemInserted(mData.length() + getHeaderLayoutCount())
+        compatibilityDataSizeChanged(1)
     }
 
+    private fun compatibilityDataSizeChanged(size: Int) {
+        val dataSize = mData.length()
+        if (dataSize == size) {
+            notifyDataSetChanged()
+        }
+    }
 
     /**
      * item点击事件监听

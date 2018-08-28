@@ -315,7 +315,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     override fun onViewAttachedToWindow(holder: AnkoViewHolder) {
         super.onViewAttachedToWindow(holder)
         val type = holder.itemViewType
-        if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW ) {
+        if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW) {
             setFullSpan(holder)
         }
     }
@@ -353,7 +353,8 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     fun addData(data: List<E>?) {
         data?.toMutableList()?.let {
             mData.addAll(it)
-            notifyDataSetChanged()
+            notifyItemRangeInserted(mData.size - data.size + getHeaderLayoutCount(), data.size)
+            compatibilityDataSizeChanged(data.size)
         }
     }
 
@@ -362,7 +363,15 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
      */
     fun addData(data: E) {
         mData.add(data)
-        notifyDataSetChanged()
+        notifyItemInserted(mData.size + getHeaderLayoutCount())
+        compatibilityDataSizeChanged(1)
+    }
+
+    private fun compatibilityDataSizeChanged(size: Int) {
+        val dataSize = if (mData == null) 0 else mData.size
+        if (dataSize == size) {
+            notifyDataSetChanged()
+        }
     }
 
     /**
@@ -397,7 +406,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         }
     }
 
-    protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: E?) : Any
+    protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: E?): Any
 
     companion object {
         const val EMPTY_VIEW = 0x00000111
