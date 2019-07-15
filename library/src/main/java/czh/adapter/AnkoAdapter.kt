@@ -50,6 +50,14 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     protected fun getFooterLayoutCount(): Int = if (mFooterLayout == null || mFooterLayout?.childCount == 0) 0 else 1
 
 
+    fun getHeaderCount(): Int {
+        return mHeaderLayout?.childCount ?: 0
+    }
+    
+    fun getFooterCount(): Int {
+        return mFooterLayout?.childCount ?: 0
+    }
+
     private fun getHeaderViewPosition(): Int {
         if (getEmptyViewCount() == 1) {
             if (mHeadAndEmptyEnable) {
@@ -406,7 +414,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         }
     }
 
-    protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: E?): Any
+    protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: E?)
 
     companion object {
         const val EMPTY_VIEW = 0x00000111
