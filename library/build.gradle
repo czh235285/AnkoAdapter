@@ -41,5 +41,6 @@ dependencies {
         api "org.jetbrains.anko:anko-$it:0.10.5"
     }
 
+    implementation 'io.supercharge:shimmerlayout:2.1.0'
 
 }
