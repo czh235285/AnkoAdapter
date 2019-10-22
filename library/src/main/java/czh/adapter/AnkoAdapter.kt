@@ -12,6 +12,8 @@ import czh.adapter.holer.AnkoViewHolder
 import czh.adapter.layout.FrameMatchUI
 import czh.adapter.layout.FrameUI
 import org.jetbrains.anko.AnkoComponent
+import android.support.v7.widget.GridLayoutManager
+
 
 abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHolder>() {
     var mData: MutableList<E>
@@ -53,7 +55,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     fun getHeaderCount(): Int {
         return mHeaderLayout?.childCount ?: 0
     }
-    
+
     fun getFooterCount(): Int {
         return mFooterLayout?.childCount ?: 0
     }
@@ -336,7 +338,25 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         }
     }
 
-    protected fun getItem(@IntRange(from = 0) position: Int): E? {
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        val manager = recyclerView.layoutManager
+        if (manager is GridLayoutManager) {
+            val defSpanSizeLookup = manager.spanSizeLookup
+            manager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    val type = getItemViewType(position)
+                    return if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW) {
+                        manager.spanCount
+                    } else {
+                        defSpanSizeLookup.getSpanSize(position)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getItem(@IntRange(from = 0) position: Int): E? {
         return if (position < mData.size)
             mData[position]
         else
