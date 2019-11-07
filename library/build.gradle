@@ -42,5 +42,5 @@ dependencies {
     }
 
     implementation 'io.supercharge:shimmerlayout:2.1.0'
-
+    implementation 'me.samlss:broccoli:1.0.0'
 }

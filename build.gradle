@@ -6,8 +6,9 @@ buildscript {
         anko_version = '0.10.5'
     }
     repositories {
-//        google()
-        jcenter()
+        maven {
+            url 'http://maven.aliyun.com/nexus/content/groups/public'
+        }
         google()
     }
     dependencies {
@@ -22,8 +23,9 @@ buildscript {
 
 allprojects {
     repositories {
-//        google()
-        jcenter()
+        maven {
+            url 'http://maven.aliyun.com/nexus/content/groups/public'
+        }
         maven { url "https://jitpack.io" }
         google()
     }

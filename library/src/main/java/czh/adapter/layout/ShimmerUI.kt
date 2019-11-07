@@ -14,9 +14,12 @@ class ShimmerUI : AnkoComponent<Context> {
     lateinit var shimmer: ShimmerLayout
 
     override fun createView(ui: AnkoContext<Context>) = with(ui) {
-        shimmer = shimmerLayout {
-            setShimmerAnimationDuration(2500)
+        verticalLayout {
+            lparams(matchParent)
+            shimmer = shimmerLayout {
+                setShimmerAnimationDuration(1500)
+            }.lparams(matchParent)
         }
-        shimmer
+
     }
 }

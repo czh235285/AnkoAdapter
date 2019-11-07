@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">JsonAdapter</string>
+    <string name="app_name">AnkoAdapter</string>
     <string name="adapter_replacedata_null">为了查看效果，点击事件将数据设为null了\nadapter.replaceData(null)</string>
 </resources>

@@ -28,6 +28,23 @@ class Skeleton {
     }
 
 
+    /**
+     * 是否自动映射布局，占位控件。为false时需要自己传入自定义占位布局
+     * @param isUsePlaceholder Boolean
+     * @return Skeleton
+     */
+    fun setIsUsePlaceholder(isUsePlaceholder: Boolean) : Skeleton {
+        mSkeletonAdapter.isUsePlaceholder = isUsePlaceholder
+        return this
+    }
+
+    fun setDuration(durationMillis:Int): Skeleton {
+        mSkeletonAdapter.durationMillis=durationMillis
+        return this
+    }
+
+
+
     @SuppressLint("ClickableViewAccessibility")
     fun show(): Skeleton {
         mSkeletonAdapter.replaceData(mList)
