@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
             SkeletonTestUI().also {
                 val view = it.createView(AnkoContext.create(this@MainActivity))
                 it.tv.text = "尾部"
-                adapter.addHeaderView(view)
+                adapter.addFooterView(view)
             }
         }
         tv4.setOnClickListener {

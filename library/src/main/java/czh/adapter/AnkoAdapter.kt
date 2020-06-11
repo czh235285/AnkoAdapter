@@ -305,17 +305,23 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         when (getItemViewType(position)) {
             EMPTY_VIEW -> (holder.ui as FrameMatchUI).empty.apply {
                 if (childCount == 0) {
-                    addView(mEmptyLayout)
+                    mEmptyLayout?.let {
+                        safeAddView(it)
+                    }
                 }
             }
             HEADER_VIEW -> (holder.ui as FrameUI).empty.apply {
                 if (childCount == 0) {
-                    addView(mHeaderLayout)
+                    mHeaderLayout?.let {
+                        safeAddView(it)
+                    }
                 }
             }
             FOOTER_VIEW -> (holder.ui as FrameUI).empty.apply {
                 if (childCount == 0) {
-                    addView(mFooterLayout)
+                    mFooterLayout?.let {
+                        safeAddView(it)
+                    }
                 }
             }
             else -> convert(holder, position - getHeaderLayoutCount(), getItem(position - getHeaderLayoutCount()))
@@ -440,6 +446,11 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         const val EMPTY_VIEW = 0x00000111
         const val HEADER_VIEW = 0x00000222
         const val FOOTER_VIEW = 0x00000333
+    }
+
+    fun ViewGroup.safeAddView(view: View) {
+        (view.parent as? ViewGroup)?.removeView(view)
+        addView(view)
     }
 }
         
