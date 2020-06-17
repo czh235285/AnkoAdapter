@@ -26,20 +26,13 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
 
     protected var onItemClickListener: OnItemClickListener<E>? = null
     protected var onItemLongClickListener: OnItemLongClickListener<E>? = null
-
     //header footer
     private var mHeaderLayout: LinearLayout? = null
     private var mFooterLayout: LinearLayout? = null
-    private var mNoMoreLayout: FrameLayout? = null
 
     //empty
     private var mEmptyLayout: FrameLayout? = null
     private var mIsUseEmpty = true
-    var IsNoMore = false
-        set(value) {
-            field = value
-            notifyItemRangeChanged(mData.size + getHeaderCount(), 2)
-        }
 
     protected var mHeadAndEmptyEnable: Boolean = false
     var mFootAndEmptyEnable: Boolean = false
@@ -57,8 +50,6 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     protected fun getHeaderLayoutCount(): Int = if (mHeaderLayout == null || mHeaderLayout?.childCount == 0) 0 else 1
 
     protected fun getFooterLayoutCount(): Int = if (mFooterLayout == null || mFooterLayout?.childCount == 0) 0 else 1
-
-    protected fun getNoMoreLayoutCount(): Int = if (mNoMoreLayout == null || mNoMoreLayout?.childCount == 0) 0 else 1
 
 
     fun getHeaderCount(): Int {
@@ -107,7 +98,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
                 count++
             }
         } else {
-            count = getHeaderLayoutCount() + mData.size + getFooterLayoutCount() + (if (mData.size != 0 && IsNoMore) getNoMoreLayoutCount() else 0)
+            count = getHeaderLayoutCount() + mData.size + getFooterLayoutCount()
         }
         return count
     }
@@ -134,7 +125,6 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         return when {
             position < getHeaderLayoutCount() -> HEADER_VIEW
             position - getHeaderLayoutCount() < mData.size -> super.getItemViewType(position)
-            position - getHeaderLayoutCount() == mData.size && mData.size != 0 && IsNoMore -> NOMORE_VIEW
             else -> FOOTER_VIEW
         }
 
@@ -166,24 +156,6 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
                 notifyItemInserted(position)
             }
         }
-    }
-
-    /**
-     * @param noMore
-     */
-    fun setNoMoreView(v: View) {
-        if (mNoMoreLayout == null) {
-            mNoMoreLayout = FrameLayout(v.context)
-            mNoMoreLayout?.layoutParams = RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams
-                    .MATCH_PARENT).apply {
-                v.layoutParams?.let {
-                    width = it.width
-                    height = it.height
-                }
-            }
-        }
-        mNoMoreLayout?.removeAllViews()
-        mNoMoreLayout?.addView(v)
     }
 
     /**
@@ -314,7 +286,6 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         this.mContext = parent.context
         return when (viewType) {
             EMPTY_VIEW -> AnkoViewHolder(FrameMatchUI(), parent.context)
-            NOMORE_VIEW -> AnkoViewHolder(FrameUI(), parent.context)
             HEADER_VIEW, FOOTER_VIEW -> AnkoViewHolder(FrameUI(), parent.context)
             else -> AnkoViewHolder(ankoLayout(viewType), parent.context).apply {
                 itemView?.setOnClickListener {
@@ -334,30 +305,17 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         when (getItemViewType(position)) {
             EMPTY_VIEW -> (holder.ui as FrameMatchUI).empty.apply {
                 if (childCount == 0) {
-                    mEmptyLayout?.let {
-                        safeAddView(it)
-                    }
-                }
-            }
-            NOMORE_VIEW -> (holder.ui as FrameUI).empty.apply {
-                if (childCount == 0) {
-                    mNoMoreLayout?.let {
-                        safeAddView(it)
-                    }
+                    addView(mEmptyLayout)
                 }
             }
             HEADER_VIEW -> (holder.ui as FrameUI).empty.apply {
                 if (childCount == 0) {
-                    mHeaderLayout?.let {
-                        safeAddView(it)
-                    }
+                    addView(mHeaderLayout)
                 }
             }
             FOOTER_VIEW -> (holder.ui as FrameUI).empty.apply {
                 if (childCount == 0) {
-                    mFooterLayout?.let {
-                        safeAddView(it)
-                    }
+                    addView(mFooterLayout)
                 }
             }
             else -> convert(holder, position - getHeaderLayoutCount(), getItem(position - getHeaderLayoutCount()))
@@ -367,7 +325,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     override fun onViewAttachedToWindow(holder: AnkoViewHolder) {
         super.onViewAttachedToWindow(holder)
         val type = holder.itemViewType
-        if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW||type== NOMORE_VIEW) {
+        if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW) {
             setFullSpan(holder)
         }
     }
@@ -482,12 +440,6 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         const val EMPTY_VIEW = 0x00000111
         const val HEADER_VIEW = 0x00000222
         const val FOOTER_VIEW = 0x00000333
-        const val NOMORE_VIEW = 0x00000444
-    }
-
-    fun ViewGroup.safeAddView(view: View) {
-        (view.parent as? ViewGroup)?.removeView(view)
-        addView(view)
     }
 }
         
