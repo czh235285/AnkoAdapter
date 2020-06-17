@@ -27,6 +27,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
         rcv.adapter = adapter
+        adapter.IsNoMore=true
+        SkeletonTestUI().also {
+            val view = it.createView(AnkoContext.create(this@MainActivity))
+            it.tv.text = "没有更多"
+            adapter.setNoMoreView(view)
+        }
         tv1.setOnClickListener {
             adapter.replaceData(null)
         }
@@ -52,7 +58,8 @@ class MainActivity : AppCompatActivity() {
             adapter.removeAllHeaderView()
         }
         tv6.setOnClickListener {
-            adapter.removeAllFooterView()
+//            adapter.removeAllFooterView()
+            adapter.IsNoMore=!adapter.IsNoMore
         }
 
 
