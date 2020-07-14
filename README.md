@@ -1,5 +1,5 @@
 ## AnkoAdapter
-[![](https://jitpack.io/v/czh235285/AnkoAdapter.svg)](https://jitpack.io/#czh235285/AnkoAdapter)
+[![](https://jitpack.io/v/com.gitee.czh235285/AnkoAdapter.svg)](https://jitpack.io/#com.gitee.czh235285/AnkoAdapter)
 
 支持anko DSL布局的adapter
 
@@ -17,7 +17,7 @@ repositories {
   google()
 }
 dependencies {
-    implementation 'com.gitee.czh235285:AnkoAdapter:1.4.0'
+    implementation 'com.gitee.czh235285:AnkoAdapter:2.0.0'
 }
 ```
 
