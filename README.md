@@ -3,9 +3,10 @@
 
 支持anko DSL布局的adapter
 
-* 支持直接传JsonArray
 * 支持类似商城的多type布局
 * 支持空布局、添加头部、尾部
+* 普通adapter和多type都是一个基类
+* 有一个viewBinding的adapter。个人不太喜欢xml绑定数据，没扩展dataBinding。
 
 use Gradle:
 
@@ -20,6 +21,5 @@ dependencies {
 }
 ```
 
-具体用法直接看[FastKotlin](https://github.com/czh235285/FastKotlin)
+简单示例[AnKoSampleAdapter](https://gitee.com/czh235285/AnkoAdapter/blob/master/app/src/main/java/c/core/sample/AnKoSampleAdapter.kt)
 
-里面有kotlin的各种demo，完全dsl布局，layout文件夹已删。。。
