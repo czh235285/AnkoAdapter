@@ -1,8 +1,6 @@
 package czh.adapter.skeleton
 
 import android.content.Context
-import android.support.v7.widget.DrawableUtils
-import android.util.Log
 import android.view.View
 import czh.adapter.AnkoAdapter
 import czh.adapter.holer.AnkoViewHolder
@@ -12,7 +10,6 @@ import org.jetbrains.anko.AnkoContext
 import android.view.ViewGroup
 import java.util.*
 import me.samlss.broccoli.Broccoli
-import me.samlss.broccoli.PlaceholderParameter
 
 
 class SkeletonAdapter(mData: List<AnkoComponent<Context>>?) : AnkoAdapter<AnkoComponent<Context>>(mData) {

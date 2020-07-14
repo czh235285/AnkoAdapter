@@ -12,6 +12,6 @@ class FrameMatchUI : AnkoComponent<Context> {
         empty = frameLayout {
             lparams(matchParent, matchParent)
         }
-        empty
+        return@with empty
     }
 }

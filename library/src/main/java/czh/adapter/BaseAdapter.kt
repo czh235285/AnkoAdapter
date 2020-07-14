@@ -1,9 +1,10 @@
 package czh.adapter
 
 import android.content.Context
-import android.support.annotation.IntRange
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.StaggeredGridLayoutManager
+import androidx.annotation.IntRange
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,23 +12,24 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import czh.adapter.entity.MultiItem
 import czh.adapter.holer.BaseViewHolder
-
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 
 /**
  * https://github.com/czh235285/JsonAdapter
  */
-abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : RecyclerView.Adapter<BaseViewHolder>() {
-    var mData: JSONArray
+abstract class BaseAdapter<E>(data: List<E>?, private var mLayoutResId: Int = -1) : RecyclerView.Adapter<BaseViewHolder>() {
+    var mData: MutableList<E>
+
+    init {
+        mData = data?.toMutableList() ?: arrayListOf()
+    }
 
     protected lateinit var mContext: Context
     private lateinit var mLayoutInflater: LayoutInflater
 
-    private var onItemClickListener: OnItemClickListener? = null
-    private var onItemLongClickListener: OnItemLongClickListener? = null
+    private var onItemClickListener: OnItemClickListener<E>? = null
+    private var onItemLongClickListener: OnItemLongClickListener<E>? = null
 
     //header footer
     private var mHeaderLayout: LinearLayout? = null
@@ -46,7 +48,7 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
     }
 
     private fun getEmptyViewCount(): Int = when {
-        mEmptyLayout == null || mEmptyLayout!!.childCount == 0 || !mIsUseEmpty || mData.length() != 0 -> 0
+        mEmptyLayout == null || mEmptyLayout!!.childCount == 0 || !mIsUseEmpty || mData.size != 0 -> 0
         else -> 1
     }
 
@@ -76,15 +78,11 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
                 return position
             }
         } else {
-            return getHeaderLayoutCount() + mData.length()
+            return getHeaderLayoutCount() + mData.size
         }
         return -1
     }
 
-
-    init {
-        this.mData = data ?: JSONArray()
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {
         this.mContext = parent.context
@@ -94,12 +92,15 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
             HEADER_VIEW -> BaseViewHolder(mHeaderLayout!!)
             FOOTER_VIEW -> BaseViewHolder(mFooterLayout!!)
             else -> {
-                BaseViewHolder(mLayoutInflater.inflate(mLayoutResId, parent, false)).apply {
-                    itemView?.setOnClickListener {
+
+                val resId = ui(viewType)
+
+                BaseViewHolder(mLayoutInflater.inflate(resId, parent, false)).apply {
+                    itemView.setOnClickListener {
                         onItemClickListener?.onItemClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
                     }
 
-                    itemView?.setOnLongClickListener {
+                    itemView.setOnLongClickListener {
                         onItemLongClickListener?.onItemLongClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
                         return@setOnLongClickListener true
                     }
@@ -114,14 +115,14 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
         when (holder.itemViewType) {
             HEADER_VIEW, FOOTER_VIEW, EMPTY_VIEW -> {
             }
-            else -> convert(holder, getItem(position - getHeaderLayoutCount()))
+            else -> convert(holder, position - getHeaderLayoutCount(), getItem(position - getHeaderLayoutCount()))
         }
     }
 
     override fun onViewAttachedToWindow(holder: BaseViewHolder) {
         super.onViewAttachedToWindow(holder)
         val type = holder.itemViewType
-        if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW ) {
+        if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW) {
             setFullSpan(holder)
         }
     }
@@ -134,9 +135,9 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
         }
     }
 
-    private fun getItem(@IntRange(from = 0) position: Int): JSONObject? {
-        return if (position < mData.length())
-            mData.optJSONObject(position)
+    private fun getItem(@IntRange(from = 0) position: Int): E? {
+        return if (position < mData.size)
+            mData[position]
         else
             null
     }
@@ -152,7 +153,7 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
                 count++
             }
         } else {
-            count = getHeaderLayoutCount() + mData.length() + getFooterLayoutCount()
+            count = getHeaderLayoutCount() + mData.size + getFooterLayoutCount()
         }
         return count
     }
@@ -178,7 +179,9 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
         }
         return when {
             position < getHeaderLayoutCount() -> HEADER_VIEW
-            position - getHeaderLayoutCount() < mData.length() -> super.getItemViewType(position)
+            position - getHeaderLayoutCount() < mData.size -> {
+                (mData[position - getHeaderLayoutCount()] as? MultiItem)?.itemType ?: -0x11111111
+            }
             else -> FOOTER_VIEW
         }
 
@@ -324,38 +327,37 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
     /**
      * 刷新数据
      */
-    fun replaceData(data: JSONArray?) {
+    fun replaceData(data: List<E>?) {
         // 不是同一个引用才清空列表
-        if (data !== mData) {
-            mData = data ?: JSONArray()
+        if (mData !== data) {
+            mData = data?.toMutableList() ?: arrayListOf()
         }
         notifyDataSetChanged()
     }
 
 
-
     /**
      * 加载更多
      */
-    fun addData(data: JSONArray) {
-        for (i in 0 until data.length()) {
-            mData.put(mData.length(), data.optJSONObject(i))
+    fun addData(data: List<E>?) {
+        data?.toMutableList()?.let {
+            mData.addAll(it)
+            notifyItemRangeInserted(mData.size - data.size + getHeaderLayoutCount(), data.size)
+            compatibilityDataSizeChanged(data.size)
         }
-        notifyItemRangeInserted(mData.length() - data.length() + getHeaderLayoutCount(), data.length())
-        compatibilityDataSizeChanged(data.length())
     }
 
     /**
      * 加载更多
      */
-    fun addData(data: JSONObject) {
-        mData.put(mData.length(), data)
-        notifyItemInserted(mData.length() + getHeaderLayoutCount())
+    fun addData(data: E) {
+        mData.add(data)
+        notifyItemInserted(mData.size + getHeaderLayoutCount())
         compatibilityDataSizeChanged(1)
     }
 
     private fun compatibilityDataSizeChanged(size: Int) {
-        val dataSize = mData.length()
+        val dataSize = mData.size
         if (dataSize == size) {
             notifyDataSetChanged()
         }
@@ -364,36 +366,37 @@ abstract class JsonAdapter(private var mLayoutResId: Int, data: JSONArray?) : Re
     /**
      * item点击事件监听
      */
-    interface OnItemClickListener {
-        fun onItemClick(view: View, position: Int, item: JSONObject)
+    interface OnItemClickListener<E> {
+        fun onItemClick(view: View, position: Int, item: E)
     }
 
     /**
      * item长按事件监听
      */
-    interface OnItemLongClickListener {
-        fun onItemLongClick(view: View, position: Int, item: JSONObject): Boolean
+    interface OnItemLongClickListener<E> {
+        fun onItemLongClick(view: View, position: Int, item: E): Boolean
     }
 
 
-    fun setOnItemClickListener(action: (view: View, position: Int, item: JSONObject) -> Unit) {
-        onItemClickListener = object : OnItemClickListener {
-            override fun onItemClick(view: View, position: Int, item: JSONObject) {
+    fun setOnItemClickListener(action: (view: View, position: Int, item: E) -> Unit) {
+        onItemClickListener = object : OnItemClickListener<E> {
+            override fun onItemClick(view: View, position: Int, item: E) {
                 action(view, position, item)
             }
         }
     }
 
-    fun setOnItemLongClickListener(action: (view: View, position: Int, item: JSONObject) -> Unit) {
-        onItemLongClickListener = object : OnItemLongClickListener {
-            override fun onItemLongClick(view: View, position: Int, item: JSONObject): Boolean {
+    fun setOnItemLongClickListener(action: (view: View, position: Int, item: E) -> Unit) {
+        onItemLongClickListener = object : OnItemLongClickListener<E> {
+            override fun onItemLongClick(view: View, position: Int, item: E): Boolean {
                 action(view, position, item)
                 return true
             }
         }
     }
 
-    protected abstract fun convert(holder: BaseViewHolder, item: JSONObject?): Any
+    protected abstract fun ui(viewType: Int): Int
+    protected abstract fun convert(holder: BaseViewHolder, position: Int, item: E?)
 
     companion object {
         const val EMPTY_VIEW = 0x00000111

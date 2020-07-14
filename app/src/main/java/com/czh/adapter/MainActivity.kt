@@ -1,15 +1,14 @@
 package com.czh.adapter
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
-import android.support.v7.widget.LinearLayoutManager
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.czh.adapter.layout.SkeletonTestUI
 import czh.adapter.skeleton.Skeleton
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.AnkoContext
-import org.jetbrains.anko.find
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,7 +25,10 @@ class MainActivity : AppCompatActivity() {
                 setEmptyView(view)
             }
         }
-        rcv.adapter = adapter
+
+        val adapter2=BindAdapter(arrayListOf(Type(1),Type(2),Type(2),Type(1)))
+
+        rcv.adapter = adapter2
         tv1.setOnClickListener {
             adapter.replaceData(null)
         }
@@ -61,7 +63,7 @@ class MainActivity : AppCompatActivity() {
                 .bind(rcv)
 //                .setIsUsePlaceholder(false)
                 .setDuration(1500)
-                .adapter(adapter)
+                .adapter(adapter2)
                 .add(SkeletonTestUI(), 4)
                 .show()
 

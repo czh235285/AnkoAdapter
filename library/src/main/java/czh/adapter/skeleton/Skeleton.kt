@@ -2,16 +2,16 @@ package czh.adapter.skeleton
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import org.jetbrains.anko.AnkoComponent
 
 class Skeleton {
     var recyclerView: RecyclerView? = null
     var mActualAdapter: RecyclerView.Adapter<*>? = null
-    val mSkeletonAdapter: SkeletonAdapter by lazy {
+    private val mSkeletonAdapter: SkeletonAdapter by lazy {
         SkeletonAdapter(null)
     }
-    val mList by lazy {
+    private val mList by lazy {
         mutableListOf<AnkoComponent<Context>>()
     }
 

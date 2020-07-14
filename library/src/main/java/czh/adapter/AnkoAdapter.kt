@@ -1,9 +1,8 @@
 package czh.adapter
 
 import android.content.Context
-import android.support.annotation.IntRange
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.StaggeredGridLayoutManager
+import android.util.SparseArray
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -12,11 +11,15 @@ import czh.adapter.holer.AnkoViewHolder
 import czh.adapter.layout.FrameMatchUI
 import czh.adapter.layout.FrameUI
 import org.jetbrains.anko.AnkoComponent
-import android.support.v7.widget.GridLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.annotation.IntRange
+import czh.adapter.entity.MultiItem
 
 
 abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHolder>() {
     var mData: MutableList<E>
+
 
     init {
         mData = data?.toMutableList() ?: arrayListOf()
@@ -26,6 +29,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
 
     protected var onItemClickListener: OnItemClickListener<E>? = null
     protected var onItemLongClickListener: OnItemLongClickListener<E>? = null
+
     //header footer
     private var mHeaderLayout: LinearLayout? = null
     private var mFooterLayout: LinearLayout? = null
@@ -124,7 +128,9 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         }
         return when {
             position < getHeaderLayoutCount() -> HEADER_VIEW
-            position - getHeaderLayoutCount() < mData.size -> super.getItemViewType(position)
+            position - getHeaderLayoutCount() < mData.size -> {
+                (mData[position - getHeaderLayoutCount()] as? MultiItem)?.itemType ?: -0x11111111
+            }
             else -> FOOTER_VIEW
         }
 
