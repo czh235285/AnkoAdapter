@@ -2,7 +2,6 @@ package com.czh.adapter
 
 import android.os.Bundle
 import android.os.Handler
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.czh.adapter.layout.SkeletonTestUI
@@ -26,7 +25,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val adapter2=BindAdapter(arrayListOf(Type(1),Type(2),Type(2),Type(1)))
+        val adapter2 = BindAdapter(arrayListOf(Type(1), Type(2), Type(2), Type(1)))
 
         rcv.adapter = adapter2
         tv1.setOnClickListener {

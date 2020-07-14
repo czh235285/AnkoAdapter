@@ -3,16 +3,17 @@ package czh.adapter.skeleton
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
+import czh.adapter.entity.SkeletonMultiple
 import org.jetbrains.anko.AnkoComponent
 
 class Skeleton {
-    var recyclerView: RecyclerView? = null
-    var mActualAdapter: RecyclerView.Adapter<*>? = null
+    private var recyclerView: RecyclerView? = null
+    private var mActualAdapter: RecyclerView.Adapter<*>? = null
     private val mSkeletonAdapter: SkeletonAdapter by lazy {
         SkeletonAdapter(null)
     }
     private val mList by lazy {
-        mutableListOf<AnkoComponent<Context>>()
+        mutableListOf<SkeletonMultiple>()
     }
 
     fun adapter(adapter: RecyclerView.Adapter<*>): Skeleton {
@@ -22,7 +23,18 @@ class Skeleton {
 
     fun add(ui: AnkoComponent<Context>, count: Int): Skeleton {
         (0 until count).forEach {
-            this.mList.add(ui)
+            this.mList.add(SkeletonMultiple(1).apply {
+                anKoUI = ui
+            })
+        }
+        return this
+    }
+
+    fun add(resId: Int, count: Int): Skeleton {
+        (0 until count).forEach {
+            this.mList.add(SkeletonMultiple(2).apply {
+                this.resId = resId
+            })
         }
         return this
     }
@@ -33,16 +45,15 @@ class Skeleton {
      * @param isUsePlaceholder Boolean
      * @return Skeleton
      */
-    fun setIsUsePlaceholder(isUsePlaceholder: Boolean) : Skeleton {
+    fun setIsUsePlaceholder(isUsePlaceholder: Boolean): Skeleton {
         mSkeletonAdapter.isUsePlaceholder = isUsePlaceholder
         return this
     }
 
-    fun setDuration(durationMillis:Int): Skeleton {
-        mSkeletonAdapter.durationMillis=durationMillis
+    fun setDuration(durationMillis: Int): Skeleton {
+        mSkeletonAdapter.durationMillis = durationMillis
         return this
     }
-
 
 
     @SuppressLint("ClickableViewAccessibility")

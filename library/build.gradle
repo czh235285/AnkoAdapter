@@ -31,13 +31,10 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    ['appcompat-v7', 'design', 'recyclerview-v7'].each {
-        api "com.android.support:$it:27.1.1"
-    }
 
     ['commons', 'sdk27', 'appcompat-v7', 'sdk27-coroutines', 'appcompat-v7-coroutines'
      , 'cardview-v7', 'design', 'design-coroutines', 'gridlayout-v7', 'percent'
