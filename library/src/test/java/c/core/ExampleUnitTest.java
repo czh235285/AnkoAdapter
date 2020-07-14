@@ -1,4 +1,4 @@
-package czh.library;
+package c.core;
 
 import org.junit.Test;
 

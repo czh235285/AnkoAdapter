@@ -16,7 +16,7 @@ repositories {
   google()
 }
 dependencies {
-    implementation 'com.github.czh235285:AnkoAdapter:1.1.8'
+    implementation 'com.gitee.czh235285:AnkoAdapter:1.4.0'
 }
 ```
 

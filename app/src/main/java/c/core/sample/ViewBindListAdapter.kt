@@ -1,11 +1,11 @@
-package com.czh.adapter
+package c.core.sample
 
-import com.czh.adapter.databinding.FootBinding
-import com.czh.adapter.databinding.ItemBinding
-import czh.adapter.BaseAdapter
-import czh.adapter.holer.BaseViewHolder
+import c.core.adapter.BaseListAdapter
+import c.core.adapter.holer.BaseViewHolder
+import c.core.sample.databinding.FootBinding
+import c.core.sample.databinding.ItemBinding
 
-class BindAdapter(data: MutableList<Type>) : BaseAdapter<Type>(data) {
+class ViewBindListAdapter(data: MutableList<MultipleBean>) : BaseListAdapter<MultipleBean>(data) {
 
     override fun ui(viewType: Int): Int {
 //        return R.layout.item
@@ -15,7 +15,7 @@ class BindAdapter(data: MutableList<Type>) : BaseAdapter<Type>(data) {
         }
     }
 
-    override fun convert(holder: BaseViewHolder, position: Int, item: Type?) {
+    override fun convert(holder: BaseViewHolder, position: Int, item: MultipleBean?) {
         when (holder.itemViewType) {
             1 -> FootBinding.bind(holder.itemView).apply {
                 tv.text = "type1"

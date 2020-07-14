@@ -1,4 +1,4 @@
-package com.czh.adapter
+package c.core.sample
 
 import android.app.Application
 

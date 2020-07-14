@@ -1,2 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="czh.adapter" />
+    package="c.core.adapter">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+</manifest>

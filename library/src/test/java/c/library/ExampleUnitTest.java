@@ -1,4 +1,4 @@
-package czh.adapter;
+package c.library;
 
 import org.junit.Test;
 

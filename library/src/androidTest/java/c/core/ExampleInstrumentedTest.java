@@ -1,4 +1,4 @@
-package czh.adapter;
+package c.core;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
