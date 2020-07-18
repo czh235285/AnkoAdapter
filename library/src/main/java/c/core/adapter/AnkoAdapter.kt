@@ -37,7 +37,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
      */
     val loadMoreModule: AnKoBaseLoadMoreModule
         get() {
-            checkNotNull(mBaseLoadMoreModule) { "Please first implements AnKoAdapterModuleImp" }
+            checkNotNull(mBaseLoadMoreModule) { "Please first implements AnkoLoadMoreModule" }
             return mBaseLoadMoreModule!!
         }
 

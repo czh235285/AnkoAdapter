@@ -21,7 +21,7 @@ class AnKoLoadMoreViewUI : AnkoComponent<Context> {
                 gravity = Gravity.CENTER
                 progressBar {
                     indeterminateTintList = ColorStateList.valueOf(Color.parseColor("#22bb62"))
-                }
+                }.lparams(dip(16),dip(16))
                 textView("正在加载中...").lparams {
                     leftMargin = dip(4)
                 }
