@@ -13,15 +13,57 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import c.core.adapter.entity.MultiItem
 import c.core.adapter.holer.BaseViewHolder
+import c.core.adapter.loadmore.BaseLoadMoreModule
+import c.core.adapter.loadmore.LoadMoreModule
+import java.lang.ref.WeakReference
 
 /**
  * https://github.com/czh235285/JsonAdapter
  */
-abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int = -1) : RecyclerView.Adapter<BaseViewHolder>() {
+
+
+/**
+ * 获取模块
+ */
+private interface BaseQuickAdapterModuleImp {
+    /**
+     * 重写此方法，返回自定义模块
+     * @param baseQuickAdapter BaseQuickAdapter<*, *>
+     * @return BaseLoadMoreModule
+     */
+    fun addLoadMoreModule(baseQuickAdapter: BaseListAdapter<*>): BaseLoadMoreModule {
+        return BaseLoadMoreModule(baseQuickAdapter)
+    }
+}
+
+abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int = -1) : RecyclerView.Adapter<BaseViewHolder>()
+        , BaseQuickAdapterModuleImp {
+
+    var mRecyclerView: RecyclerView? = null
+
     var mData: MutableList<E>
 
     init {
         mData = data?.toMutableList() ?: arrayListOf()
+        checkModule()
+    }
+
+    /**
+     * 加载更多模块
+     */
+    val loadMoreModule: BaseLoadMoreModule
+        get() {
+            checkNotNull(mLoadMoreModule) { "Please first implements LoadMoreModule" }
+            return mLoadMoreModule!!
+        }
+
+    /**
+     * 检查模块
+     */
+    private fun checkModule() {
+        if (this is LoadMoreModule) {
+            mLoadMoreModule = this.addLoadMoreModule(this)
+        }
     }
 
     protected lateinit var mContext: Context
@@ -41,19 +83,22 @@ abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int 
     private var mHeadAndEmptyEnable: Boolean = false
     private var mFootAndEmptyEnable: Boolean = false
 
+    internal var mLoadMoreModule: BaseLoadMoreModule? = null
+
     fun setHeaderFooterEmpty(isHeadAndEmpty: Boolean, isFootAndEmpty: Boolean) {
         mHeadAndEmptyEnable = isHeadAndEmpty
         mFootAndEmptyEnable = isFootAndEmpty
     }
 
-    private fun getEmptyViewCount(): Int = when {
+    fun getEmptyViewCount(): Int = when {
         mEmptyLayout == null || mEmptyLayout!!.childCount == 0 || !mIsUseEmpty || mData.size != 0 -> 0
         else -> 1
     }
 
-    private fun getHeaderLayoutCount(): Int = if (mHeaderLayout == null || mHeaderLayout?.childCount == 0) 0 else 1
+    fun getHeaderLayoutCount(): Int = if (mHeaderLayout == null || mHeaderLayout?.childCount == 0) 0 else 1
 
-    private fun getFooterLayoutCount(): Int = if (mFooterLayout == null || mFooterLayout?.childCount == 0) 0 else 1
+
+    fun getFooterLayoutCount(): Int = if (mFooterLayout == null || mFooterLayout?.childCount == 0) 0 else 1
 
 
     private fun getHeaderViewPosition(): Int {
@@ -87,6 +132,13 @@ abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int 
         this.mContext = parent.context
         this.mLayoutInflater = LayoutInflater.from(mContext)
         return when (viewType) {
+            LOAD_MORE_VIEW -> {
+                val view = mLoadMoreModule!!.loadMoreView.getRootView(parent)
+                BaseViewHolder(view).also {
+                    mLoadMoreModule!!.setupViewHolder(it)
+                }
+
+            }
             EMPTY_VIEW -> BaseViewHolder(mEmptyLayout!!)
             HEADER_VIEW -> BaseViewHolder(mHeaderLayout!!)
             FOOTER_VIEW -> BaseViewHolder(mFooterLayout!!)
@@ -111,10 +163,19 @@ abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int 
 
 
     override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
+        val realPosition = position - getHeaderLayoutCount()
+        mLoadMoreModule?.autoLoadMore(position)
+
+
         when (holder.itemViewType) {
+            LOAD_MORE_VIEW -> {
+                mLoadMoreModule?.let {
+                    it.loadMoreView.convert(holder, position, it.loadMoreStatus)
+                }
+            }
             HEADER_VIEW, FOOTER_VIEW, EMPTY_VIEW -> {
             }
-            else -> convert(holder, position - getHeaderLayoutCount(), getItem(position - getHeaderLayoutCount()))
+            else -> convert(holder, realPosition, getItem(realPosition))
         }
     }
 
@@ -142,25 +203,29 @@ abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int 
     }
 
     override fun getItemCount(): Int {
-        var count: Int
         if (getEmptyViewCount() == 1) {
-            count = 1
-            if (mHeadAndEmptyEnable && getHeaderLayoutCount() != 0) {
+            var count = 1
+            if (mHeadAndEmptyEnable && getHeaderLayoutCount() == 1) {
                 count++
             }
-            if (mFootAndEmptyEnable && getFooterLayoutCount() != 0) {
+            if (mFootAndEmptyEnable && getFooterLayoutCount() == 1) {
                 count++
             }
+            return count
         } else {
-            count = getHeaderLayoutCount() + mData.size + getFooterLayoutCount()
+            val loadMoreCount = if (mLoadMoreModule?.hasLoadMoreView() == true) {
+                1
+            } else {
+                0
+            }
+            return getHeaderLayoutCount() + mData.size + getFooterLayoutCount() + loadMoreCount
         }
-        return count
     }
 
 
     override fun getItemViewType(position: Int): Int {
         if (getEmptyViewCount() == 1) {
-            val header = mHeadAndEmptyEnable && getHeaderLayoutCount() != 0
+            val header = mHeadAndEmptyEnable && getHeaderLayoutCount() == 1
             return when (position) {
                 0 -> if (header) {
                     HEADER_VIEW
@@ -176,12 +241,32 @@ abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int 
                 else -> EMPTY_VIEW
             }
         }
-        return when {
-            position < getHeaderLayoutCount() -> HEADER_VIEW
-            position - getHeaderLayoutCount() < mData.size -> {
-                (mData[position - getHeaderLayoutCount()] as? MultiItem)?.itemType ?: -0x11111111
+
+        val hasHeader = getHeaderLayoutCount() == 1
+        if (hasHeader && position == 0) {
+            return HEADER_VIEW
+        } else {
+            var adjPosition = if (hasHeader) {
+                position - 1
+            } else {
+                position
             }
-            else -> FOOTER_VIEW
+            val dataSize = mData.size
+            return if (adjPosition < dataSize) {
+                (mData[position - getHeaderLayoutCount()] as? MultiItem)?.itemType ?: DEFAULT_VIEW
+            } else {
+                adjPosition -= dataSize
+                val numFooters = if (getFooterLayoutCount() == 1) {
+                    1
+                } else {
+                    0
+                }
+                if (adjPosition < numFooters) {
+                    FOOTER_VIEW
+                } else {
+                    LOAD_MORE_VIEW
+                }
+            }
         }
 
     }
@@ -323,15 +408,28 @@ abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int 
     }
 
 
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        mRecyclerView = recyclerView
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        mRecyclerView = null
+    }
+
+
     /**
      * 刷新数据
      */
     fun replaceData(data: List<E>?) {
         // 不是同一个引用才清空列表
+        mLoadMoreModule?.reset()
         if (mData !== data) {
             mData = data?.toMutableList() ?: arrayListOf()
         }
         notifyDataSetChanged()
+        mLoadMoreModule?.checkDisableLoadMoreIfNotFullPage()
     }
 
 
@@ -398,8 +496,10 @@ abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int 
     protected abstract fun convert(holder: BaseViewHolder, position: Int, item: E?)
 
     companion object {
-        const val EMPTY_VIEW = 0x00000111
-        const val HEADER_VIEW = 0x00000222
-        const val FOOTER_VIEW = 0x00000333
+        const val EMPTY_VIEW = -0x00000111
+        const val HEADER_VIEW = -0x00000222
+        const val FOOTER_VIEW = -0x00000333
+        const val LOAD_MORE_VIEW = -0x00000444
+        const val DEFAULT_VIEW = -0x00000555
     }
 }
