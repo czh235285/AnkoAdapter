@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.annotation.IntRange
 import c.core.adapter.entity.MultiItem
 import c.core.adapter.loadmore.AnKoBaseLoadMoreModule
+import c.core.adapter.loadmore.AnkoLoadMoreModule
 
 /**
  * 获取模块
@@ -36,7 +37,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
      */
     val loadMoreModule: AnKoBaseLoadMoreModule
         get() {
-            checkNotNull(mBaseLoadMoreModule) { "Please first implements LoadMoreModule" }
+            checkNotNull(mBaseLoadMoreModule) { "Please first implements AnKoAdapterModuleImp" }
             return mBaseLoadMoreModule!!
         }
 
@@ -50,7 +51,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
      * 检查模块
      */
     private fun checkModule() {
-        if (this is AnKoBaseLoadMoreModule) {
+        if (this is AnkoLoadMoreModule) {
             mBaseLoadMoreModule = this.addLoadMoreModule(this)
         }
     }
