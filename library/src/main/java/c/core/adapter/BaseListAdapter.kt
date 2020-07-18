@@ -25,7 +25,7 @@ import java.lang.ref.WeakReference
 /**
  * 获取模块
  */
-private interface BaseQuickAdapterModuleImp {
+private interface BaseListAdapterModuleImp {
     /**
      * 重写此方法，返回自定义模块
      * @param baseQuickAdapter BaseQuickAdapter<*, *>
@@ -37,7 +37,7 @@ private interface BaseQuickAdapterModuleImp {
 }
 
 abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int = -1) : RecyclerView.Adapter<BaseViewHolder>()
-        , BaseQuickAdapterModuleImp {
+        , BaseListAdapterModuleImp {
 
     var mRecyclerView: RecyclerView? = null
 
@@ -182,7 +182,7 @@ abstract class BaseListAdapter<E>(data: List<E>?, private var mLayoutResId: Int 
     override fun onViewAttachedToWindow(holder: BaseViewHolder) {
         super.onViewAttachedToWindow(holder)
         val type = holder.itemViewType
-        if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW) {
+        if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW || type == LOAD_MORE_VIEW) {
             setFullSpan(holder)
         }
     }

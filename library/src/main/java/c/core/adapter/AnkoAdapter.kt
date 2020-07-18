@@ -14,14 +14,45 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.annotation.IntRange
 import c.core.adapter.entity.MultiItem
+import c.core.adapter.loadmore.AnKoLoadMoreModule
 
+/**
+ * 获取模块
+ */
+private interface AnKoAdapterModuleImp {
+    fun addLoadMoreModule(baseQuickAdapter: AnkoAdapter<*>): AnKoLoadMoreModule {
+        return AnKoLoadMoreModule(baseQuickAdapter)
+    }
+}
 
-abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHolder>() {
+abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHolder>(), AnKoAdapterModuleImp {
     var mData: MutableList<E>
+    var mRecyclerView: RecyclerView? = null
+
+    internal var mLoadMoreModule: AnKoLoadMoreModule? = null
+
+    /**
+     * 加载更多模块
+     */
+    val loadMoreModule: AnKoLoadMoreModule
+        get() {
+            checkNotNull(mLoadMoreModule) { "Please first implements LoadMoreModule" }
+            return mLoadMoreModule!!
+        }
 
 
     init {
         mData = data?.toMutableList() ?: arrayListOf()
+        checkModule()
+    }
+
+    /**
+     * 检查模块
+     */
+    private fun checkModule() {
+        if (this is AnKoLoadMoreModule) {
+            mLoadMoreModule = this.addLoadMoreModule(this)
+        }
     }
 
     protected lateinit var mContext: Context
@@ -45,14 +76,14 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         mFootAndEmptyEnable = isFootAndEmpty
     }
 
-    protected fun getEmptyViewCount(): Int = when {
+    fun getEmptyViewCount(): Int = when {
         mEmptyLayout == null || mEmptyLayout!!.childCount == 0 || !mIsUseEmpty || mData.isNotEmpty() -> 0
         else -> 1
     }
 
-    protected fun getHeaderLayoutCount(): Int = if (mHeaderLayout == null || mHeaderLayout?.childCount == 0) 0 else 1
+    fun getHeaderLayoutCount(): Int = if (mHeaderLayout == null || mHeaderLayout?.childCount == 0) 0 else 1
 
-    protected fun getFooterLayoutCount(): Int = if (mFooterLayout == null || mFooterLayout?.childCount == 0) 0 else 1
+    fun getFooterLayoutCount(): Int = if (mFooterLayout == null || mFooterLayout?.childCount == 0) 0 else 1
 
 
     fun getHeaderCount(): Int {
@@ -89,27 +120,30 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         return -1
     }
 
-
     override fun getItemCount(): Int {
-        var count: Int
         if (getEmptyViewCount() == 1) {
-            count = 1
-            if (mHeadAndEmptyEnable && getHeaderLayoutCount() != 0) {
+            var count = 1
+            if (mHeadAndEmptyEnable && getHeaderLayoutCount() == 1) {
                 count++
             }
-            if (mFootAndEmptyEnable && getFooterLayoutCount() != 0) {
+            if (mFootAndEmptyEnable && getFooterLayoutCount() == 1) {
                 count++
             }
+            return count
         } else {
-            count = getHeaderLayoutCount() + mData.size + getFooterLayoutCount()
+            val loadMoreCount = if (mLoadMoreModule?.hasLoadMoreView() == true) {
+                1
+            } else {
+                0
+            }
+            return getHeaderLayoutCount() + mData.size + getFooterLayoutCount() + loadMoreCount
         }
-        return count
     }
 
 
     override fun getItemViewType(position: Int): Int {
         if (getEmptyViewCount() == 1) {
-            val header = mHeadAndEmptyEnable && getHeaderLayoutCount() != 0
+            val header = mHeadAndEmptyEnable && getHeaderLayoutCount() == 1
             return when (position) {
                 0 -> if (header) {
                     HEADER_VIEW
@@ -125,16 +159,35 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
                 else -> EMPTY_VIEW
             }
         }
-        return when {
-            position < getHeaderLayoutCount() -> HEADER_VIEW
-            position - getHeaderLayoutCount() < mData.size -> {
-                (mData[position - getHeaderLayoutCount()] as? MultiItem)?.itemType ?: -0x11111111
+
+        val hasHeader = getHeaderLayoutCount() == 1
+        if (hasHeader && position == 0) {
+            return HEADER_VIEW
+        } else {
+            var adjPosition = if (hasHeader) {
+                position - 1
+            } else {
+                position
             }
-            else -> FOOTER_VIEW
+            val dataSize = mData.size
+            return if (adjPosition < dataSize) {
+                (mData[position - getHeaderLayoutCount()] as? MultiItem)?.itemType ?: DEFAULT_VIEW
+            } else {
+                adjPosition -= dataSize
+                val numFooters = if (getFooterLayoutCount() == 1) {
+                    1
+                } else {
+                    0
+                }
+                if (adjPosition < numFooters) {
+                    FOOTER_VIEW
+                } else {
+                    LOAD_MORE_VIEW
+                }
+            }
         }
 
     }
-
 
     /**
      * @param emptyView
@@ -290,14 +343,20 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AnkoViewHolder {
         this.mContext = parent.context
         return when (viewType) {
+            LOAD_MORE_VIEW -> {
+                val ui = mLoadMoreModule!!.loadMoreView.getRootView()
+                AnkoViewHolder(ui, parent.context).also {
+                    mLoadMoreModule!!.setupViewHolder(it)
+                }
+            }
             EMPTY_VIEW -> AnkoViewHolder(FrameMatchUI(), parent.context)
             HEADER_VIEW, FOOTER_VIEW -> AnkoViewHolder(FrameUI(), parent.context)
             else -> AnkoViewHolder(ankoLayout(viewType), parent.context).apply {
-                itemView?.setOnClickListener {
+                itemView.setOnClickListener {
                     onItemClickListener?.onItemClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
                 }
 
-                itemView?.setOnLongClickListener {
+                itemView.setOnLongClickListener {
                     onItemLongClickListener?.onItemLongClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
                     return@setOnLongClickListener true
                 }
@@ -307,7 +366,13 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
 
 
     override fun onBindViewHolder(holder: AnkoViewHolder, position: Int) {
+        mLoadMoreModule?.autoLoadMore(position)
         when (getItemViewType(position)) {
+            LOAD_MORE_VIEW -> {
+                mLoadMoreModule?.let {
+                    it.loadMoreView.convert(holder, position, it.loadMoreStatus)
+                }
+            }
             EMPTY_VIEW -> holder.getAnKoUi<FrameMatchUI>()?.apply {
                 if (empty.childCount == 0) {
                     empty.addView(mEmptyLayout)
@@ -318,7 +383,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
                     empty.addView(mHeaderLayout)
                 }
             }
-            FOOTER_VIEW ->  holder.getAnKoUi<FrameUI>()?.apply {
+            FOOTER_VIEW -> holder.getAnKoUi<FrameUI>()?.apply {
                 if (empty.childCount == 0) {
                     empty.addView(mFooterLayout)
                 }
@@ -335,6 +400,11 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         }
     }
 
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        mRecyclerView = null
+    }
+
     protected fun setFullSpan(holder: AnkoViewHolder) {
         if (holder.itemView.layoutParams is StaggeredGridLayoutManager.LayoutParams) {
             val params = holder
@@ -345,6 +415,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
+        mRecyclerView = recyclerView
         val manager = recyclerView.layoutManager
         if (manager is GridLayoutManager) {
             val defSpanSizeLookup = manager.spanSizeLookup
@@ -368,15 +439,18 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
             null
     }
 
+
     /**
      * 刷新数据
      */
     fun replaceData(data: List<E>?) {
         // 不是同一个引用才清空列表
+        mLoadMoreModule?.reset()
         if (mData !== data) {
             mData = data?.toMutableList() ?: arrayListOf()
         }
         notifyDataSetChanged()
+        mLoadMoreModule?.checkDisableLoadMoreIfNotFullPage()
     }
 
 
@@ -442,9 +516,11 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: E?)
 
     companion object {
-        const val EMPTY_VIEW = 0x00000111
-        const val HEADER_VIEW = 0x00000222
-        const val FOOTER_VIEW = 0x00000333
+        const val EMPTY_VIEW = -0x00000111
+        const val HEADER_VIEW = -0x00000222
+        const val FOOTER_VIEW = -0x00000333
+        const val LOAD_MORE_VIEW = -0x00000444
+        const val DEFAULT_VIEW = -0x00000555
     }
 }
         

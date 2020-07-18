@@ -13,7 +13,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var rcv: RecyclerView
 
     private val mAdapter by lazy {
-        AnKoSampleAdapter(null)
+        SampleAdapterAnko(null)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
