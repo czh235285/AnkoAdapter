@@ -14,14 +14,14 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.annotation.IntRange
 import c.core.adapter.entity.MultiItem
-import c.core.adapter.loadmore.AnKoLoadMoreModule
+import c.core.adapter.loadmore.AnKoBaseLoadMoreModule
 
 /**
  * 获取模块
  */
 private interface AnKoAdapterModuleImp {
-    fun addLoadMoreModule(baseQuickAdapter: AnkoAdapter<*>): AnKoLoadMoreModule {
-        return AnKoLoadMoreModule(baseQuickAdapter)
+    fun addLoadMoreModule(baseQuickAdapter: AnkoAdapter<*>): AnKoBaseLoadMoreModule {
+        return AnKoBaseLoadMoreModule(baseQuickAdapter)
     }
 }
 
@@ -29,15 +29,15 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     var mData: MutableList<E>
     var mRecyclerView: RecyclerView? = null
 
-    internal var mLoadMoreModule: AnKoLoadMoreModule? = null
+    internal var mBaseLoadMoreModule: AnKoBaseLoadMoreModule? = null
 
     /**
      * 加载更多模块
      */
-    val loadMoreModule: AnKoLoadMoreModule
+    val loadMoreModule: AnKoBaseLoadMoreModule
         get() {
-            checkNotNull(mLoadMoreModule) { "Please first implements LoadMoreModule" }
-            return mLoadMoreModule!!
+            checkNotNull(mBaseLoadMoreModule) { "Please first implements LoadMoreModule" }
+            return mBaseLoadMoreModule!!
         }
 
 
@@ -50,8 +50,8 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
      * 检查模块
      */
     private fun checkModule() {
-        if (this is AnKoLoadMoreModule) {
-            mLoadMoreModule = this.addLoadMoreModule(this)
+        if (this is AnKoBaseLoadMoreModule) {
+            mBaseLoadMoreModule = this.addLoadMoreModule(this)
         }
     }
 
@@ -131,7 +131,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
             }
             return count
         } else {
-            val loadMoreCount = if (mLoadMoreModule?.hasLoadMoreView() == true) {
+            val loadMoreCount = if (mBaseLoadMoreModule?.hasLoadMoreView() == true) {
                 1
             } else {
                 0
@@ -344,9 +344,9 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         this.mContext = parent.context
         return when (viewType) {
             LOAD_MORE_VIEW -> {
-                val ui = mLoadMoreModule!!.loadMoreView.getRootView()
+                val ui = mBaseLoadMoreModule!!.loadMoreView.getRootView()
                 AnkoViewHolder(ui, parent.context).also {
-                    mLoadMoreModule!!.setupViewHolder(it)
+                    mBaseLoadMoreModule!!.setupViewHolder(it)
                 }
             }
             EMPTY_VIEW -> AnkoViewHolder(FrameMatchUI(), parent.context)
@@ -366,10 +366,10 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
 
 
     override fun onBindViewHolder(holder: AnkoViewHolder, position: Int) {
-        mLoadMoreModule?.autoLoadMore(position)
+        mBaseLoadMoreModule?.autoLoadMore(position)
         when (getItemViewType(position)) {
             LOAD_MORE_VIEW -> {
-                mLoadMoreModule?.let {
+                mBaseLoadMoreModule?.let {
                     it.loadMoreView.convert(holder, position, it.loadMoreStatus)
                 }
             }
@@ -445,12 +445,12 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
      */
     fun replaceData(data: List<E>?) {
         // 不是同一个引用才清空列表
-        mLoadMoreModule?.reset()
+        mBaseLoadMoreModule?.reset()
         if (mData !== data) {
             mData = data?.toMutableList() ?: arrayListOf()
         }
         notifyDataSetChanged()
-        mLoadMoreModule?.checkDisableLoadMoreIfNotFullPage()
+        mBaseLoadMoreModule?.checkDisableLoadMoreIfNotFullPage()
     }
 
 

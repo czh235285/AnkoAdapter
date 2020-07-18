@@ -27,6 +27,9 @@ class MainActivity : AppCompatActivity() {
         rcv.adapter = mAdapter
 
         mAdapter.replaceData(data)
+        mAdapter.loadMoreModule.apply {
+
+        }
     }
 
     private val data: MutableList<MultipleBean>

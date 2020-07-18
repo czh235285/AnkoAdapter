@@ -3,11 +3,12 @@ package c.core.sample
 import android.content.Context
 import c.core.adapter.AnkoAdapter
 import c.core.adapter.holer.AnkoViewHolder
+import c.core.adapter.loadmore.AnkoLoadMoreModule
 import c.core.sample.layout.ImageViewUI
 import c.core.sample.layout.TextViewUI
 import org.jetbrains.anko.AnkoComponent
 
-class SampleAdapterAnko(mData: List<MultipleBean>?) : AnkoAdapter<MultipleBean>(mData) {
+class SampleAdapterAnko(mData: List<MultipleBean>?) : AnkoAdapter<MultipleBean>(mData),AnkoLoadMoreModule {
     override fun ankoLayout(viewType: Int): AnkoComponent<Context> {
 //        这里是多type布局，如果单个type直接return一个布局就行.多type的实体MultipleBean继承MultiItem即可。
 //        return ImageViewUI()
