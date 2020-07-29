@@ -43,12 +43,20 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
 
-    ['commons', 'sdk27', 'appcompat-v7', 'sdk27-coroutines', 'appcompat-v7-coroutines'
-     , 'cardview-v7', 'design', 'design-coroutines', 'gridlayout-v7', 'percent'
-     , 'recyclerview-v7', 'recyclerview-v7-coroutines', 'support-v4-commons', 'support-v4', 'constraint-layout'].each {
-        api "org.jetbrains.anko:anko-$it:0.10.8"
-    }
+//    ['commons', 'sdk27', 'appcompat-v7', 'sdk27-coroutines', 'appcompat-v7-coroutines'
+//     , 'cardview-v7', 'design', 'design-coroutines', 'gridlayout-v7', 'percent'
+//     , 'recyclerview-v7', 'recyclerview-v7-coroutines', 'support-v4-commons', 'support-v4', 'constraint-layout'].each {
+//        api "org.jetbrains.anko:anko-$it:0.10.8"
+//    }
+
+    def anko_version = "0.10.8"
+    implementation "org.jetbrains.anko:anko-commons:$anko_version"
+    implementation "org.jetbrains.anko:anko-sdk27:$anko_version"
+
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation "androidx.appcompat:appcompat:1.1.0"
 
     implementation 'io.supercharge:shimmerlayout:2.1.0'
     implementation 'me.samlss:broccoli:1.0.0'
+
 }

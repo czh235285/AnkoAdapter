@@ -1,11 +1,10 @@
 package c.core.sample
 
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import org.jetbrains.anko.recyclerview.v7.recyclerView
+import c.core.widget.recyclerView
 import org.jetbrains.anko.verticalLayout
 
 class MainActivity : AppCompatActivity() {
@@ -20,7 +19,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(verticalLayout {
             rcv = recyclerView {
-                overScrollMode= View.OVER_SCROLL_NEVER
                 layoutManager = LinearLayoutManager(this.context)
             }
         })
