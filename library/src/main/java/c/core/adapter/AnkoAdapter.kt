@@ -20,7 +20,7 @@ import c.core.adapter.loadmore.AnkoLoadMoreModule
 /**
  * 获取模块
  */
-private interface AnKoAdapterModuleImp {
+interface AnKoAdapterModuleImp {
     fun addLoadMoreModule(baseQuickAdapter: AnkoAdapter<*>): AnKoBaseLoadMoreModule {
         return AnKoBaseLoadMoreModule(baseQuickAdapter)
     }

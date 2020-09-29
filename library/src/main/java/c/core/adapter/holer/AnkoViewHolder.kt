@@ -9,4 +9,8 @@ open class AnkoViewHolder(private var ui: AnkoComponent<Context>, ctx: Context) 
     fun <T : AnkoComponent<Context>> getAnKoUi(): T? {
         return ui as? T
     }
+
+    fun <T : AnkoComponent<Context>> bind(action: T.() -> Unit) {
+        (ui as? T)?.let(action)
+    }
 }
