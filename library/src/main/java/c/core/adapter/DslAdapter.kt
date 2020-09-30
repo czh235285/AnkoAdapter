@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import c.core.adapter.entity.AdapterItem
 
 
-class AnkoAdapter2() : RecyclerView.Adapter<AnkoViewHolder>() {
+class DslAdapter() : RecyclerView.Adapter<AnkoViewHolder>() {
     var mData: MutableList<AdapterItem>
     var mRecyclerView: RecyclerView? = null
 
