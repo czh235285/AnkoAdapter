@@ -2,15 +2,26 @@ package c.core.adapter.skeleton
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import c.core.adapter.AnkoAdapter
+import c.core.adapter.adapterItem
 import c.core.adapter.entity.SkeletonMultiple
+import c.core.adapter.layout.ShimmerUI
+import me.samlss.broccoli.Broccoli
 import org.jetbrains.anko.AnkoComponent
+import org.jetbrains.anko.AnkoContext
+import java.util.*
 
 class Skeleton {
+    private var durationMillis: Int = 1500
+    private var isUsePlaceholder: Boolean = true
     private var recyclerView: RecyclerView? = null
     private var mActualAdapter: RecyclerView.Adapter<*>? = null
-    private val mSkeletonAdapter: SkeletonAdapter by lazy {
-        SkeletonAdapter(null)
+    private val mSkeletonAdapter by lazy {
+        AnkoAdapter()
     }
     private val mList by lazy {
         mutableListOf<SkeletonMultiple>()
@@ -46,19 +57,81 @@ class Skeleton {
      * @return Skeleton
      */
     fun setIsUsePlaceholder(isUsePlaceholder: Boolean): Skeleton {
-        mSkeletonAdapter.isUsePlaceholder = isUsePlaceholder
+        this.isUsePlaceholder = isUsePlaceholder
         return this
     }
 
     fun setDuration(durationMillis: Int): Skeleton {
-        mSkeletonAdapter.durationMillis = durationMillis
+        this.durationMillis = durationMillis
         return this
     }
 
 
     @SuppressLint("ClickableViewAccessibility")
     fun show(): Skeleton {
-        mSkeletonAdapter.replaceData(mList)
+
+        mSkeletonAdapter.replaceData(mList.map {
+            adapterItem<ShimmerUI> { holder, position ->
+                val mContext = holder.itemView.context
+                it.anKoUI?.createView(AnkoContext.create(mContext))?.also {
+                    if (isUsePlaceholder) {
+                        val broccoli = Broccoli()
+                        val stack = ArrayDeque<View>()
+                        stack.addLast(it)
+                        while (!stack.isEmpty()) {
+                            //取得栈顶
+                            val top = stack.last as View
+                            //出栈
+                            stack.pollLast()
+                            //如果为viewGroup则使子节点入栈
+                            if (top is ViewGroup) {
+                                val childCount = top.childCount
+                                for (i in childCount - 1 downTo 0) {
+                                    stack.addLast(top.getChildAt(i))
+                                }
+                            } else {
+                                broccoli.addPlaceholders(top)
+                            }
+                        }
+                        broccoli.show()
+                    }
+                    shimmer.removeAllViews()
+                    shimmer.addView(it)
+                    shimmer.setShimmerAnimationDuration(durationMillis)
+                    shimmer.startShimmerAnimation()
+                }
+
+                it.resId?.also {
+                    val view = LayoutInflater.from(mContext).inflate(it, null)
+                    if (isUsePlaceholder) {
+                        val broccoli = Broccoli()
+                        val stack = ArrayDeque<View>()
+                        stack.addLast(view)
+                        while (!stack.isEmpty()) {
+                            //取得栈顶
+                            val top = stack.last as View
+                            //出栈
+                            stack.pollLast()
+                            //如果为viewGroup则使子节点入栈
+                            if (top is ViewGroup) {
+                                val childCount = top.childCount
+                                for (i in childCount - 1 downTo 0) {
+                                    stack.addLast(top.getChildAt(i))
+                                }
+                            } else {
+                                broccoli.addPlaceholders(top)
+                            }
+                        }
+                        broccoli.show()
+                    }
+                    shimmer.removeAllViews()
+                    shimmer.addView(view)
+                    shimmer.setShimmerAnimationDuration(durationMillis)
+                    shimmer.startShimmerAnimation()
+                }
+
+            }
+        })
         recyclerView?.adapter = mSkeletonAdapter
         recyclerView?.setOnTouchListener { v, event ->
             return@setOnTouchListener true

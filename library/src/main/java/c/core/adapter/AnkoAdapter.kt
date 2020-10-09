@@ -9,11 +9,9 @@ import android.widget.LinearLayout
 import c.core.adapter.holer.AnkoViewHolder
 import c.core.adapter.layout.FrameMatchUI
 import c.core.adapter.layout.FrameUI
-import org.jetbrains.anko.AnkoComponent
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import androidx.annotation.IntRange
-import c.core.adapter.entity.MultiItem
+import c.core.adapter.entity.DslItemView
 import c.core.adapter.loadmore.AnKoBaseLoadMoreModule
 import c.core.adapter.loadmore.AnkoLoadMoreModule
 
@@ -21,13 +19,13 @@ import c.core.adapter.loadmore.AnkoLoadMoreModule
  * 获取模块
  */
 interface AnKoAdapterModuleImp {
-    fun addLoadMoreModule(baseQuickAdapter: AnkoAdapter<*>): AnKoBaseLoadMoreModule {
+    fun addLoadMoreModule(baseQuickAdapter: AnkoAdapter): AnKoBaseLoadMoreModule {
         return AnKoBaseLoadMoreModule(baseQuickAdapter)
     }
 }
 
-abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHolder>(), AnKoAdapterModuleImp {
-    var mData: MutableList<E>
+open class AnkoAdapter() : RecyclerView.Adapter<AnkoViewHolder>(), AnKoAdapterModuleImp {
+    var mData = mutableListOf<DslItemView>()
     var mRecyclerView: RecyclerView? = null
 
     internal var mBaseLoadMoreModule: AnKoBaseLoadMoreModule? = null
@@ -43,7 +41,6 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
 
 
     init {
-        mData = data?.toMutableList() ?: arrayListOf()
         checkModule()
     }
 
@@ -58,8 +55,6 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
 
     protected lateinit var mContext: Context
 
-    protected var onItemClickListener: OnItemClickListener<E>? = null
-    protected var onItemLongClickListener: OnItemLongClickListener<E>? = null
 
     //header footer
     private var mHeaderLayout: LinearLayout? = null
@@ -172,7 +167,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
             }
             val dataSize = mData.size
             return if (adjPosition < dataSize) {
-                (mData[position - getHeaderLayoutCount()] as? MultiItem)?.itemType ?: DEFAULT_VIEW
+                position - getHeaderLayoutCount()
             } else {
                 adjPosition -= dataSize
                 val numFooters = if (getFooterLayoutCount() == 1) {
@@ -340,7 +335,6 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     }
 
 
-    abstract fun ankoLayout(viewType: Int): AnkoComponent<Context>
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AnkoViewHolder {
         this.mContext = parent.context
         return when (viewType) {
@@ -352,16 +346,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
             }
             EMPTY_VIEW -> AnkoViewHolder(FrameMatchUI(), parent.context)
             HEADER_VIEW, FOOTER_VIEW -> AnkoViewHolder(FrameUI(), parent.context)
-            else -> AnkoViewHolder(ankoLayout(viewType), parent.context).apply {
-                itemView.setOnClickListener {
-                    onItemClickListener?.onItemClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
-                }
-
-                itemView.setOnLongClickListener {
-                    onItemLongClickListener?.onItemLongClick(it, layoutPosition - getHeaderLayoutCount(), getItem(layoutPosition - getHeaderLayoutCount())!!)
-                    return@setOnLongClickListener true
-                }
-            }
+            else -> AnkoViewHolder(mData[viewType].ui, parent.context)
         }
     }
 
@@ -389,7 +374,12 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
                     empty.addView(mFooterLayout)
                 }
             }
-            else -> convert(holder, position - getHeaderLayoutCount(), getItem(position - getHeaderLayoutCount()))
+            else -> {
+                val realPosition = position - getHeaderLayoutCount()
+                mData[realPosition].itemBind(holder, realPosition)
+            }
+
+
         }
     }
 
@@ -419,32 +409,24 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
         mRecyclerView = recyclerView
         val manager = recyclerView.layoutManager
         if (manager is GridLayoutManager) {
-            val defSpanSizeLookup = manager.spanSizeLookup
             manager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                 override fun getSpanSize(position: Int): Int {
                     val type = getItemViewType(position)
-                    return if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW) {
+                    return if (type == EMPTY_VIEW || type == HEADER_VIEW || type == FOOTER_VIEW || type == LOAD_MORE_VIEW) {
                         manager.spanCount
                     } else {
-                        defSpanSizeLookup.getSpanSize(position)
+                        mData[type].spanSize
                     }
                 }
             }
         }
     }
 
-    private fun getItem(@IntRange(from = 0) position: Int): E? {
-        return if (position < mData.size)
-            mData[position]
-        else
-            null
-    }
-
 
     /**
      * 刷新数据
      */
-    fun replaceData(data: List<E>?) {
+    fun replaceData(data: List<DslItemView>?) {
         // 不是同一个引用才清空列表
         mBaseLoadMoreModule?.reset()
         if (mData !== data) {
@@ -458,7 +440,7 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     /**
      * 加载更多
      */
-    fun addData(data: List<E>?) {
+    fun addData(data: List<DslItemView>?) {
         data?.toMutableList()?.let {
             mData.addAll(it)
             notifyItemRangeInserted(mData.size - data.size + getHeaderLayoutCount(), data.size)
@@ -469,52 +451,18 @@ abstract class AnkoAdapter<E>(data: List<E>?) : RecyclerView.Adapter<AnkoViewHol
     /**
      * 加载更多
      */
-    fun addData(data: E) {
+    fun addData(data: DslItemView) {
         mData.add(data)
         notifyItemInserted(mData.size + getHeaderLayoutCount())
         compatibilityDataSizeChanged(1)
     }
 
     private fun compatibilityDataSizeChanged(size: Int) {
-        val dataSize = if (mData == null) 0 else mData.size
+        val dataSize = mData.size
         if (dataSize == size) {
             notifyDataSetChanged()
         }
     }
-
-    /**
-     * item点击事件监听
-     */
-    interface OnItemClickListener<E> {
-        fun onItemClick(view: View, position: Int, item: E)
-    }
-
-    /**
-     * item长按事件监听
-     */
-    interface OnItemLongClickListener<E> {
-        fun onItemLongClick(view: View, position: Int, item: E): Boolean
-    }
-
-
-    fun setOnItemClickListener(action: (view: View, position: Int, item: E) -> Unit) {
-        onItemClickListener = object : OnItemClickListener<E> {
-            override fun onItemClick(view: View, position: Int, item: E) {
-                action(view, position, item)
-            }
-        }
-    }
-
-    fun setOnItemLongClickListener(action: (view: View, position: Int, item: E) -> Unit) {
-        onItemLongClickListener = object : OnItemLongClickListener<E> {
-            override fun onItemLongClick(view: View, position: Int, item: E): Boolean {
-                action(view, position, item)
-                return true
-            }
-        }
-    }
-
-    protected abstract fun convert(holder: AnkoViewHolder, position: Int, item: E?)
 
     companion object {
         const val EMPTY_VIEW = -0x00000111

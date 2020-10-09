@@ -24,7 +24,7 @@ object LoadMoreModuleConfigAnKo {
 /**
  * 加载更多基类
  */
-open class AnKoBaseLoadMoreModule(private val BaseListAdapter: AnkoAdapter<*>) : LoadMoreListenerImp {
+open class AnKoBaseLoadMoreModule(private val BaseListAdapter: AnkoAdapter) : LoadMoreListenerImp {
 
     private var mLoadMoreListener: OnLoadMoreListener? = null
 
