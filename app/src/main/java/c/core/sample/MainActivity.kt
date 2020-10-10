@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import c.core.adapter.*
+import c.core.adapter.entity.DslItemView
 import c.core.sample.layout.TextViewUI
 import c.core.widget.recyclerView
 import org.jetbrains.anko.*
@@ -39,34 +40,26 @@ class MainActivity : AppCompatActivity() {
 
         val mvals = mutableListOf("安卓", "IOS", "H5")
 
+        rcv.dslAdapter {
+            replaceData(mvals.map {
+                dslItem<TextViewUI> { holder, position ->
+                    tv.text = it
+                }
+            })
+        }
 
-//        rcv.submitItems(mvals.map {
-//            adapterItem<TextViewUI> { holder, position ->
-//                tv.text = it
-//            }
-//        },2)
-//
-//        tv.setOnClickListener {
-//            rcv.submitItems(mvals.map {
-//                adapterItem<TextViewUI> { holder, position ->
-//                    tv.text = it
-//                }
-//            }, 2)
-//        }
 
         rcv.dslAdapter {
-            
-
-            addItem<TextViewUI> { holder, position ->
+            addItem<TextViewUI> {
                 tv.text = "动态添加"
             }
-            addItem<TextViewUI> { holder, position ->
+            addItem<TextViewUI> {
                 tv.text = "动态添加"
             }
-            addItem<TextViewUI> { holder, position ->
+            addItem<TextViewUI> {
                 tv.text = "动态添加"
             }
-            addItem<TextViewUI> { holder, position ->
+            addItem<TextViewUI> {
                 tv.text = "动态添加"
             }
         }

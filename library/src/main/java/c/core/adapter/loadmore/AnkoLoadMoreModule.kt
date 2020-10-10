@@ -178,11 +178,7 @@ open class AnKoBaseLoadMoreModule(private val BaseListAdapter: AnkoAdapter) : Lo
     }
 
     /**
-     * check if full page after [BaseListAdapter.setNewInstance] [BaseListAdapter.setList],
-     * if full, it will enable load more again.
-     *
      * 用来检查数据是否满一屏，如果满足条件，再开启
-     *
      */
     fun checkDisableLoadMoreIfNotFullPage() {
         if (isEnableLoadMoreIfNotFullPage) {
@@ -257,7 +253,6 @@ open class AnKoBaseLoadMoreModule(private val BaseListAdapter: AnkoAdapter) : Lo
         if (!hasLoadMoreView()) {
             return
         }
-//        mNextLoadEnable = true
         loadMoreStatus = LoadMoreStatus.Complete
 
         BaseListAdapter.notifyItemChanged(loadMoreViewPosition)

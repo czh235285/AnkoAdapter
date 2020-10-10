@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import c.core.adapter.AnkoAdapter
-import c.core.adapter.adapterItem
+import c.core.adapter.dslItem
 import c.core.adapter.entity.SkeletonMultiple
 import c.core.adapter.layout.ShimmerUI
 import me.samlss.broccoli.Broccoli
@@ -71,7 +71,7 @@ class Skeleton {
     fun show(): Skeleton {
 
         mSkeletonAdapter.replaceData(mList.map {
-            adapterItem<ShimmerUI> { holder, position ->
+            dslItem<ShimmerUI> { holder, position ->
                 val mContext = holder.itemView.context
                 it.anKoUI?.createView(AnkoContext.create(mContext))?.also {
                     if (isUsePlaceholder) {
